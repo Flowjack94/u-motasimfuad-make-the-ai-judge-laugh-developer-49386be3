@@ -4,6 +4,9 @@
 Writes one funny single-line developer excuse (when code breaks in
 production) to /output/entry.txt. No network, no external files,
 fully deterministic.
+
+Usage: python3 main.py [--check]  (--check validates and prints the
+entry without writing anything)
 """
 
 import hashlib
@@ -41,7 +44,17 @@ def validate_entry(text: str) -> None:
         raise ValueError("entry contains a lone surrogate")
 
 
-def main() -> int:
+def main(argv=None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if "--check" in argv:
+        # Validation-only mode: never touches the filesystem.
+        validate_entry(ENTRY)
+        data = ENTRY.encode("utf-8")
+        print(ENTRY)
+        print(f"length: {len(ENTRY)} chars / {len(data)} bytes")
+        print(f"sha256: {hashlib.sha256(data).hexdigest()}")
+        print("check: OK (nothing written)")
+        return 0
     validate_entry(ENTRY)
     data = ENTRY.encode("utf-8")
     os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
